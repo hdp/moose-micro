@@ -126,6 +126,19 @@ All attributes are declared C<< is => 'rw' >>.
 
 There is no way to specify many options, like default, builder, handles, etc.
 
+=head1 METHODS
+
+These are all internals that you probably don't care about.  They'll be
+documented when they're stable.
+
+=head2 attribute_list
+
+=head2 attribute_args
+
+=head2 type_constraint_for
+
+=head2 unimport
+
 =head1 SEE ALSO
 
 L<Moose>
