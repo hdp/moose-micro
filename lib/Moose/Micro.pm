@@ -78,3 +78,66 @@ sub type_constraint_for {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Moose::Micro - succinctly specify Moose attributes
+
+=head1 SYNOPSIS
+
+  package MyClass;
+  use Moose::Micro 'foo $bar @baz; %!quux';
+
+=head1 DESCRIPTION
+
+Moose::Micro makes it easy to declare Moose attributes without a lot of typing.
+
+=head1 SYNTAX
+
+The argument to C<use Moose::Micro> is a list of attribute names, which is
+split on whitespace.  Any attributes named before the (optional) semicolon are
+required; any after it are not.
+
+Sigils are optional, and impose the following type constraints:
+
+=over
+
+=item * C<@>: ArrayRef
+
+=item * C<%>: HashRef
+
+=item * C<$>: anything under Defined that isn't one of the above
+
+=back
+
+No sigil means no type constraint.
+
+Following the sigil or prefixing the attribute name with C<!> makes the
+attribute 'private'; that is, the generated accessor will start with C<_>,
+e.g.:
+
+  !foo $!bar
+
+=head1 LIMITATIONS
+
+All attributes are declared C<< is => 'rw' >>.
+
+There is no way to specify many options, like default, builder, handles, etc.
+
+=head1 SEE ALSO
+
+L<Moose>
+
+=head1 AUTHOR
+
+  Hans Dieter Pearcey <hdp@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2009 by Hans Dieter Pearcey. This is free
+software; you can redistribute it and/or modify it under the same terms as perl
+itself. 
+
+=cut
