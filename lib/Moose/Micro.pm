@@ -30,14 +30,19 @@ sub unimport { goto &$unimport }
 
 sub attribute_list {
   my ($self, $attributes) = @_;
-  my $required = 1;
 
   my @attributes;
 
-  for my $attr (split /\s+/, $attributes) {
+  my ($required, $optional) = split /\s*;\s*/, $attributes;
+
+  for my $attr (grep { length } split /\s+/, $required) {
     my ($name, %args) = $self->attribute_args($attr);
-    $args{required} = $required;
-    $required = 0 if $name =~ s/;$//;
+    $args{required} = 1;
+    push @attributes, [ $name, %args ];
+  }
+
+  for my $attr (grep { length } split /\s+/, $optional) {
+    my ($name, %args) = $self->attribute_args($attr);
     push @attributes, [ $name, %args ];
   }
 
