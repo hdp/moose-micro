@@ -5,6 +5,7 @@ package Moose::Micro;
 
 use Moose ();
 use Moose::Exporter;
+use B::Hooks::EndOfScope;
 
 my ($import, $unimport);
 BEGIN {
@@ -19,8 +20,10 @@ sub import {
 
   my $caller = caller;
 
-  my $meta = Moose::Meta::Class->initialize($caller);
-  $meta->add_attribute(@$_) for $class->attribute_list($attributes);
+  on_scope_end {
+    my $meta = Moose::Meta::Class->initialize($caller);
+    $meta->add_attribute(@$_) for $class->attribute_list($caller, $attributes);
+  };
 
   unshift @_, $class;
   goto &$import;
@@ -29,20 +32,20 @@ sub import {
 sub unimport { goto &$unimport }
 
 sub attribute_list {
-  my ($self, $attributes) = @_;
+  my ($self, $pkg, $attributes) = @_;
 
   my @attributes;
 
   my ($required, $optional) = split /\s*;\s*/, $attributes;
 
   for my $attr (grep { length } split /\s+/, $required) {
-    my ($name, %args) = $self->attribute_args($attr);
+    my ($name, %args) = $self->attribute_args($pkg, $attr);
     $args{required} = 1;
     push @attributes, [ $name, %args ];
   }
 
   for my $attr (grep { length } split /\s+/, $optional) {
-    my ($name, %args) = $self->attribute_args($attr);
+    my ($name, %args) = $self->attribute_args($pkg, $attr);
     push @attributes, [ $name, %args ];
   }
 
@@ -50,7 +53,7 @@ sub attribute_list {
 }
 
 sub attribute_args {
-  my ($self, $attribute) = @_;
+  my ($self, $pkg, $attribute) = @_;
 
   my %args = (
     is => 'rw',
@@ -65,7 +68,9 @@ sub attribute_args {
     %args = (%args, accessor => "_$attribute");
   }
 
-  # TODO: check for _build_$attribute and assume lazy_build
+  if ($pkg->can("_build_$attribute")) {
+    $args{lazy_build} = 1;
+  }
 
   return ($attribute => %args);
 }
@@ -124,6 +129,9 @@ attribute 'private'; that is, the generated accessor will start with C<_>,
 e.g.:
 
   !foo $!bar
+
+If your class has a method named C<_build_$attribute>, C<< lazy_build => 1 >>
+is added to the attribute definition.
 
 =head1 LIMITATIONS
 
